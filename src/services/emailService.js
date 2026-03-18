@@ -41,7 +41,7 @@ async function sentOTPEmail(toEmail, otp){
     console.log("Otp Sent");
     
   }catch(err){
-    console.log("❌ OTP error:", error.message);
+    console.log("❌ OTP error:", err.message);
   }
 }
 
