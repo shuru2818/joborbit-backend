@@ -1,7 +1,7 @@
 const User = require("../models/User.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const {sendWelcomeEmail, sentOTPEmail} =require("../services/emailService.js");
+const {sendWelcomeEmail, sendOTPEmail} =require("../services/emailService.js");
 const generateOTP = require("../utils/generateOTP.js")
 
 exports.registerUser = async (req, res) => {
@@ -26,7 +26,7 @@ exports.registerUser = async (req, res) => {
       isVerified: false
     });
 
-    sentOTPEmail(email, otp);
+    sendOTPEmail(email, otp);
     res.status(201).json({ message: "OTP SENT", email: newUser.email });
 
     // await sendWelcomeEmail(email, password);
