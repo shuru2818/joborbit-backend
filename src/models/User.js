@@ -21,8 +21,12 @@ const userSchema = new mongoose.Schema(
         isVerified:{
             type:Boolean,
             default : false
-        }
-
+        },
+        phoneno:String,
+        bio:String,
+        location: String,
+        ProfilePic:String,
+        skills: [String]
 },
     {timestamps:true}
 )

@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const {sendWelcomeEmail, sendOTPEmail} =require("../services/emailService.js");
 const generateOTP = require("../utils/generateOTP.js")
 
+
 exports.registerUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -69,6 +70,7 @@ exports.verifyOTP = async (req, res) => {
       _id: user._id,
       username: user.username,
       email: user.email,
+      ProfilePic: user.ProfilePic,
       token,
     });
   } catch (err) {
@@ -76,6 +78,8 @@ exports.verifyOTP = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+//forgotpassword logic
 
 exports.forgotPassword = async (req, res) => {
   try {
@@ -99,6 +103,9 @@ exports.forgotPassword = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+
+//reset password logic
 
 exports.resetPassword = async (req, res) => {
   try {
@@ -130,6 +137,9 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
+
+//resend otp logic
+
 exports.resendOTP = async (req, res) => {
   try {
     const { email } = req.body;
@@ -156,6 +166,10 @@ exports.resendOTP = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+
+
+//loginuser
 
 exports.loginUser = async (req, res) => {
   try {
@@ -187,6 +201,7 @@ exports.loginUser = async (req, res) => {
       _id: existingUser._id,
       username: existingUser.username,
       email: existingUser.email,
+      ProfilePic: existingUser.ProfilePic,
       token
     });
 
@@ -195,3 +210,83 @@ exports.loginUser = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+
+//userprofile
+
+exports.getUserProfile = async(req, res)=>{
+  try{
+    const user = await User.findById(req.user._id).select("-password");
+
+    if(!user){
+      return res.status(401).json({ message: "User not found" });  
+    }
+
+    res.status(200).json({
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      phoneno: user.phoneno,
+      bio: user.bio,
+      location: user.location,
+      ProfilePic: user.ProfilePic,
+      skills: user.skills
+    })
+  }catch(err){
+    res.status(500).json({ message: "Server Error" });
+  }
+}
+
+//update profile
+
+exports.updateProfile = async(req, res)=>{
+  try{
+    const { username, phoneno, bio, location, skills } = req.body;
+
+    const user = await User.findById(req.user._id);
+
+    if(!user){
+      return res.status(401).json({ message: "User not found" });  
+    }
+
+    // Update fields if provided
+    if(username && username.trim()) user.username = username.trim();
+    if(phoneno !== undefined && phoneno !== null) user.phoneno = phoneno;
+    if(bio !== undefined && bio !== null) user.bio = bio;
+    if(location !== undefined && location !== null) user.location = location;
+    
+    // Handle skills - it comes as JSON string from FormData
+    if(skills) {
+      try {
+        const parsedSkills = JSON.parse(skills);
+        if(Array.isArray(parsedSkills)) {
+          user.skills = parsedSkills;
+        }
+      } catch (parseErr) {
+        // If parsing fails, don't update skills
+      }
+    }
+
+    // Handle profile picture upload
+    if(req.file){
+      user.ProfilePic = req.file.path; // Cloudinary URL
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      phoneno: user.phoneno,
+      bio: user.bio,
+      location: user.location,
+      ProfilePic: user.ProfilePic,
+      skills: user.skills
+    })
+  }catch(err){
+    console.log(err);
+    res.status(500).json({ message: "Server Error" });
+  }
+}
+
